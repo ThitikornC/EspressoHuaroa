@@ -902,7 +902,7 @@
       </div>
       <div class="ClientName_Container neon scroll-reveal">
         <div class="ClientName">Active Users : <span id="active-user-box">0</span></div>
-        <div class="ClientName">Total Users : <span id="total-user-box">0</span></div>
+        <div class="ClientName">Total Uses : <span id="total-user-box">0</span></div>
       </div>
     </div>
 
@@ -1036,7 +1036,7 @@ async function fetchUserStats(){
     if(ac) ac.textContent = 'จำนวนเชื่อมต่อ (connections): ' + (data.activeConnections ?? data.activeClients ?? 0);
     if(dc) dc.textContent = 'จำนวนผู้ใช้งานที่กำลัง active (distinct clientIds): ' + (data.distinctActiveClientIds ?? 0);
     if(dd) dd.textContent = 'ผู้ใช้วันนี้ (unique): ' + (data.dailyUniqueToday ?? 0);
-    if(ev) ev.textContent = 'ผู้ใช้ทั้งหมดที่เคยเข้ามา: ' + (data.totalEverUsers ?? 0);
+    if(ev) ev.textContent = 'การเข้าใช้ทั้งหมด (ครั้ง): ' + (data.totalEverUsers ?? 0);
     // Update right box
     const activeBox = document.getElementById('active-user-box');
     const totalBox = document.getElementById('total-user-box');

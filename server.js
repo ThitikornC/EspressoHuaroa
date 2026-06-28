@@ -565,10 +565,10 @@ async function recordUniqueUser(clientId) {
       )
       console.log(`[DEBUG] New unique user recorded: ${clientId}`)
       
-      // Emit realtime update
+      // Emit realtime update (ใช้เลขเดียวกับ getUserStats = จำนวน daily_users)
       try {
-        const stats = await userStatsColl.findOne({ _id: 'global' })
-        if (io) io.emit('userStats:update', { totalUsers: stats?.totalUsers || 0 })
+        const { totalUsers } = await getUserStats()
+        if (io) io.emit('userStats:update', { totalUsers })
       } catch (e) {}
     }
     
@@ -586,25 +586,13 @@ async function getUserStats() {
   try {
     const activeUsers = clientIdMap.size // distinct active clientIds
     let totalUsers = 0
-    
-    if (userStatsColl) {
-      const stats = await userStatsColl.findOne({ _id: 'global' })
-      totalUsers = stats?.totalUsers || 0
+
+    // Total Users = จำนวนการเข้าใช้รายวันทั้งหมดใน daily_users (นับ "ครั้ง-วัน")
+    // อ่านสดจาก collection โดยตรง ไม่พึ่งตัวนับ user_stats ที่อาจค้าง/ไม่ตรงข้อมูลเก่า
+    if (dailyUsersColl) {
+      totalUsers = await dailyUsersColl.countDocuments()
     }
-    
-    // Fallback: if totalUsers is 0, count from unique_users collection
-    if (totalUsers === 0 && uniqueUsersColl) {
-      totalUsers = await uniqueUsersColl.countDocuments()
-      // Initialize the counter if not set
-      if (totalUsers > 0 && userStatsColl) {
-        await userStatsColl.updateOne(
-          { _id: 'global' },
-          { $set: { totalUsers }, $setOnInsert: { created_at: new Date().toISOString() } },
-          { upsert: true }
-        )
-      }
-    }
-    
+
     return { activeUsers, totalUsers }
   } catch (e) {
     console.error('[ERROR] getUserStats failed', e && e.message)
