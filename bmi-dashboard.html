@@ -476,16 +476,16 @@
 
             // Weight-for-Age: provide five-category labels as requested
             if (type === 'WA' && len >= 5) {
-                // Use top, upper, median, lower, bottom thresholds
-                const top = ref[len-1];
-                const upper = ref[len-2];
-                const median = ref[Math.floor((len - 1) / 2)];
-                const lower = ref[1];
-                if (val > top) return { t: "น้ำหนักมาก", c: "status-red" };
-                if (val > upper) return { t: "น้ำหนักค่อนข้างมาก", c: "status-orange" };
-                if (val >= median) return { t: "น้ำหนักตามเกณฑ์", c: "status-green" };
-                if (val >= lower) return { t: "น้ำหนักค่อนข้างน้อย", c: "status-orange" };
-                return { t: "น้ำหนักน้อย", c: "status-red" };
+                // ref = [-2 SD, -1.5 SD, median, +1.5 SD, +2 SD]
+                const plus2 = ref[len-1];   // +2 SD
+                const plus15 = ref[len-2];  // +1.5 SD
+                const minus15 = ref[1];     // -1.5 SD
+                const minus2 = ref[0];      // -2 SD
+                if (val > plus2) return { t: "น้ำหนักมาก", c: "status-red" };          // > +2 SD
+                if (val > plus15) return { t: "น้ำหนักค่อนข้างมาก", c: "status-orange" }; // +1.5 ถึง +2 SD
+                if (val >= minus15) return { t: "น้ำหนักตามเกณฑ์", c: "status-green" };  // -1.5 ถึง +1.5 SD
+                if (val >= minus2) return { t: "น้ำหนักค่อนข้างน้อย", c: "status-orange" }; // -2 ถึง -1.5 SD
+                return { t: "น้ำหนักน้อย", c: "status-red" };                          // < -2 SD
             }
 
             const median = ref[Math.floor((len - 1) / 2)];
