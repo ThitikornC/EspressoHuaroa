@@ -738,6 +738,7 @@
                 const roomNames = Array.from(roomsMap.keys()).sort();
                 roomNames.forEach(roomName => {
                     const records = roomsMap.get(roomName) || [];
+                    const uniqueCount = new Set(records.map(r => (r.name || 'ไม่ระบุ').trim())).size;
                     const div = document.createElement('div');
                     div.className = 'p-3 mb-2 cursor-pointer flex items-center gap-3 border border-gray-100 rounded-md bg-white side-item hover:shadow-sm hover:bg-gray-50 transition';
                     div.onclick = () => renderSidebar(filter, roomName);
@@ -747,7 +748,7 @@
                     div.innerHTML = `
                         <div class="w-full text-center">
                             <div class="font-medium text-gray-800 text-sm">${displayRoom}</div>
-                            <div class="text-xs text-gray-500 mt-1">${records.length} รายชื่อ</div>
+                            <div class="text-xs text-gray-500 mt-1">${uniqueCount} รายชื่อ</div>
                         </div>
                     `;
                     listEl.appendChild(div);
