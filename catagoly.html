@@ -9,21 +9,40 @@
 <script src="/js/prevent-image-download.js"></script>
     <style>
       /* Ensure mode buttons have equal size and align consistently */
-      .container { display:flex; flex-direction:column; align-items:center; gap:1.5rem; }
+      /* กริดการ์ด 3 คอลัมน์ จัดกึ่งกลางชิดบน — ตรงกับ Client.vue (.tree-container) */
+      .container {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 320px)) !important;
+        justify-content: center !important;
+        align-content: start !important;
+        gap: 32px !important;
+        padding: 20px 20px 60px !important;
+        max-width: min(1200px, 95vw) !important;
+        margin: 0 auto !important;
+        min-height: 100vh !important;
+      }
+      .container h1 { grid-column: 1 / -1; text-align: center; margin: 24px 0 8px; }
       .container .neon-btn {
-        display: inline-flex !important;
+        display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        /* reduced horizontal size */
-        width: clamp(200px, 32vw, 360px) !important;
-        /* slightly taller buttons */
-        min-height: clamp(72px, 9vh, 104px) !important;
-        /* increase vertical padding, keep smaller horizontal padding */
-        padding: clamp(16px, 3vh, 28px) clamp(10px, 2.2vw, 16px) !important;
+        /* ขนาดการ์ดแบบเดียวกับ .parent-box */
+        width: 100% !important;
+        max-width: 320px !important;
+        min-height: 200px !important;
+        margin: 0 !important;
+        padding: 16px !important;
         box-sizing: border-box !important;
         text-align: center !important;
-        white-space: nowrap !important;
-        line-height: 1 !important;
+        white-space: normal !important;
+        line-height: 1.2 !important;
+      }
+      /* responsive เหมือนต้นฉบับ: จอแคบ -> 2 คอลัมน์ / มือถือ -> 1 */
+      @media (max-width: 768px) {
+        .container { grid-template-columns: repeat(2, minmax(0, 340px)) !important; gap: 16px !important; }
+      }
+      @media (max-width: 560px) {
+        .container { grid-template-columns: minmax(0, 340px) !important; }
       }
       /* Keep inner text readable on small screens */
       .container .neon-btn span, .container .neon-btn { font-size: clamp(1rem, 2.2vw, 1.25rem) !important; }
@@ -41,7 +60,7 @@
           margin: 12px auto !important;
           padding: clamp(16px, 3vh, 28px) clamp(10px, 2.2vw, 16px) !important;
           font-size: clamp(1rem, 2.2vw, 1.25rem) !important;
-          border-radius: 9999px !important;
+          border-radius: 10px !important;
           box-shadow: 0 8px 24px rgba(0,0,0,0.32) !important;
           z-index: 9999 !important;
         }
