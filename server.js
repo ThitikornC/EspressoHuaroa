@@ -911,7 +911,8 @@ app.use((req, res, next) => {
 })
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "menu.html"))
+  // ซ่อนหน้า menu: ให้เข้ามาเจอ catalog เลย
+  res.sendFile(path.join(__dirname, "catagoly.html"))
 })
 
 // ===== SETTINGS API - บันทึกกิจกรรมลง MongoDB =====
