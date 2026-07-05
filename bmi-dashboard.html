@@ -989,6 +989,74 @@
             try { if (window.innerWidth < 1024) { document.querySelector('aside').classList.add('hidden'); document.getElementById('contentSection').scrollIntoView(); } } catch(e) {}
         }
 
+        // --- Nutrition trend line chart (status % across visits) ---
+        const TREND_WINDOW = 5;        // show this many visits at once
+        let trendWindowOffset = 0;     // 0 = newest window; +1 shifts one visit older
+        let trendClassName = null;     // reset the window when switching rooms
+
+        // Build per-visit status percentages for a class, reusing the WH grouping
+        // already used by the top summary table (n=สมส่วน, o=ท้วม/อ้วน, u=ผอม).
+        function buildTrendSeries(className, maxVisit) {
+            const labels = [], normal = [], over = [], under = [];
+            for (let v = 1; v <= maxVisit; v++) {
+                const s = calculateStatsForClass(className, v);
+                const t = s.t || 0;
+                labels.push('ครั้งที่ ' + v);
+                normal.push(t ? +((s.n / t) * 100).toFixed(2) : 0);
+                over.push(t ? +((s.o / t) * 100).toFixed(2) : 0);
+                under.push(t ? +((s.u / t) * 100).toFixed(2) : 0);
+            }
+            return { labels, normal, over, under };
+        }
+
+        function renderTrendChart(className, maxVisit) {
+            const canvas = document.getElementById('trendChart');
+            if (!canvas || typeof Chart === 'undefined') return;
+            // Reset the scroll window when the room changes
+            if (className !== trendClassName) { trendWindowOffset = 0; trendClassName = className; }
+
+            const full = buildTrendSeries(className, maxVisit);
+            const n = full.labels.length;
+            const maxOffset = Math.max(0, n - TREND_WINDOW);
+            if (trendWindowOffset > maxOffset) trendWindowOffset = maxOffset;
+            if (trendWindowOffset < 0) trendWindowOffset = 0;
+            const end = n - trendWindowOffset;
+            const start = Math.max(0, end - TREND_WINDOW);
+            const slice = arr => arr.slice(start, end);
+
+            if (chartInstances['trendChart']) { chartInstances['trendChart'].destroy(); }
+            const ctx = canvas.getContext('2d');
+            chartInstances['trendChart'] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: slice(full.labels),
+                    datasets: [
+                        { label: 'สมส่วน/ตามเกณฑ์', data: slice(full.normal), borderColor: '#16a34a', backgroundColor: '#16a34a', tension: 0.3, fill: false, pointRadius: 4 },
+                        { label: 'ท้วม/อ้วน', data: slice(full.over), borderColor: '#f97316', backgroundColor: '#f97316', tension: 0.3, fill: false, pointRadius: 4 },
+                        { label: 'ผอม', data: slice(full.under), borderColor: '#dc2626', backgroundColor: '#dc2626', tension: 0.3, fill: false, pointRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        y: { min: 0, max: 100, title: { display: true, text: '% ของเด็กในห้อง' }, ticks: { callback: v => v + '%' } },
+                        x: { title: { display: true, text: 'ครั้งที่ชั่ง/วัด' } }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y}%` } }
+                    }
+                }
+            });
+
+            const prev = document.getElementById('trendPrev');
+            const next = document.getElementById('trendNext');
+            if (prev) { prev.disabled = (start === 0); prev.onclick = () => { trendWindowOffset++; renderTrendChart(className, maxVisit); }; }
+            if (next) { next.disabled = (trendWindowOffset === 0); next.onclick = () => { trendWindowOffset--; renderTrendChart(className, maxVisit); }; }
+        }
+
         // Render a classroom summary (totals + student list) into main content
         function showClassroomSummary(className) {
             console.log('[bmi] showClassroomSummary', className);
@@ -1186,9 +1254,24 @@
             });
 
             html += `</tbody></table>`;
-            // add some spacing then append the detailed summary sections
-            html += `<div class="my-6"></div>` + detailedHtml;
+            // Trend line chart: nutritional status (%) across visits
+            const trendCardHtml = `
+                <div class="my-6"></div>
+                <div class="bg-white rounded-2xl border border-gray-100 p-4">
+                    <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
+                        <div class="font-bold text-sm text-gray-700">แนวโน้มภาวะโภชนาการรายครั้ง (น้ำหนักตามส่วนสูง)</div>
+                        <div class="flex items-center gap-2">
+                            <button id="trendPrev" type="button" class="px-2 py-1 rounded-md border border-gray-200 text-sm bg-white text-gray-700 hover:bg-gray-50">‹ เก่ากว่า</button>
+                            <button id="trendNext" type="button" class="px-2 py-1 rounded-md border border-gray-200 text-sm bg-white text-gray-700 hover:bg-gray-50">ใหม่กว่า ›</button>
+                        </div>
+                    </div>
+                    <div style="height:280px"><canvas id="trendChart"></canvas></div>
+                    <div class="text-xs text-gray-400 mt-2">เส้นเขียว “สมส่วน” สูงขึ้น = ภาพรวมดีขึ้น • เส้นแดง “ผอม” หรือเส้นส้ม “ท้วม/อ้วน” สูงขึ้น = แย่ลง</div>
+                </div>`;
+            // add some spacing then append trend chart + detailed summary sections
+            html += trendCardHtml + `<div class="my-6"></div>` + detailedHtml;
             detail.innerHTML = html;
+            renderTrendChart(className, maxVisit);
 
             try {
                 const visitSel = document.getElementById('classVisitSelect');

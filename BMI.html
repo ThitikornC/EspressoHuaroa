@@ -460,28 +460,36 @@ const growthData = {
         function evaluateStatus(val, ref, type) {
             if (!ref || !Array.isArray(ref) || ref.length === 0) return { t: '-', c: 'bg-gray-100' };
             const len = ref.length;
-            const median = ref[Math.floor((len - 1) / 2)];
-            const low = ref[0];
-            const high = ref[len - 1];
+            // ref เรียงตามลำดับ SD: [−2SD, −1.5SD, Median, +1.5SD, +2SD, (+3SD เฉพาะ WH)]
+            const sdM2  = ref[0];                                     // −2SD
+            const sdM15 = ref[1] != null ? ref[1] : sdM2;            // −1.5SD
+            const median = ref[2] != null ? ref[2] : ref[Math.floor((len - 1) / 2)];
+            const sdP15 = ref[3] != null ? ref[3] : ref[len - 1];   // +1.5SD
+            const sdP2  = ref[4] != null ? ref[4] : ref[len - 1];   // +2SD
+            const sdP3  = ref[5] != null ? ref[5] : sdP2;           // +3SD
 
             if (type === 'HA') {
-                if (val > high) return { t: "สูง", c: "status-green bg-green-100 text-green-700" };
-                if (val >= median) return { t: "สูงตามเกณฑ์", c: "status-green" };
-                if (val >= low) return { t: "ค่อนข้างเตี้ย", c: "status-orange" };
+                if (val > sdP2)   return { t: "สูง", c: "status-green bg-green-100 text-green-700" };
+                if (val > sdP15)  return { t: "ค่อนข้างสูง", c: "status-green" };
+                if (val >= sdM15) return { t: "สูงตามเกณฑ์", c: "status-green" };
+                if (val >= sdM2)  return { t: "ค่อนข้างเตี้ย", c: "status-orange" };
                 return { t: "เตี้ย", c: "status-red" };
             }
 
             if (type === 'WA') {
-                if (val > high) return { t: "น้ำหนักมาก", c: "status-red" };
-                if (val >= median) return { t: "น้ำหนักตามเกณฑ์", c: "status-green" };
-                if (val >= low) return { t: "น้ำหนักค่อนข้างน้อย", c: "status-orange" };
+                if (val > sdP2)   return { t: "น้ำหนักมาก", c: "status-red" };
+                if (val > sdP15)  return { t: "น้ำหนักค่อนข้างมาก", c: "status-orange" };
+                if (val >= sdM15) return { t: "น้ำหนักตามเกณฑ์", c: "status-green" };
+                if (val >= sdM2)  return { t: "น้ำหนักค่อนข้างน้อย", c: "status-orange" };
                 return { t: "น้ำหนักน้อย", c: "status-red" };
             }
 
             if (type === 'WH') {
-                if (val > high) return { t: "อ้วน", c: "status-red" };
-                if (val >= median) return { t: "สมส่วน", c: "status-green" };
-                if (val >= low) return { t: "ค่อนข้างผอม", c: "status-orange" };
+                if (val > sdP3)   return { t: "อ้วน", c: "status-red" };
+                if (val > sdP2)   return { t: "เริ่มอ้วน", c: "status-orange" };
+                if (val > sdP15)  return { t: "ท้วม", c: "status-yellow" };
+                if (val >= sdM15) return { t: "สมส่วน", c: "status-green" };
+                if (val >= sdM2)  return { t: "ค่อนข้างผอม", c: "status-orange" };
                 return { t: "ผอม", c: "status-red" };
             }
 
