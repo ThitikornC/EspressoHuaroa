@@ -300,7 +300,21 @@ button { cursor:pointer; }
 .file-input-wrapper {
   position: relative;
   display: inline-block;
+  max-width: 100%;
   margin: 5px;
+}
+
+/* ซ่อน input file ตัวจริง แล้วให้ label เป็นปุ่มแทน (แบบเดียวกับ teachermatch.css)
+   ถ้าไม่ซ่อน เบราว์เซอร์จะวาดกล่อง "เลือกไฟล์ / ไม่ได้เลือกไฟล์ใด" ตามความกว้างของมันเอง
+   ซึ่งหดตามกรอบไม่ได้ เลยทะลุกรอบรูปถูก/รูปผิดออกมา */
+.file-input-wrapper input[type=file] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
 }
 
 /* Neon Button Style */
@@ -350,7 +364,9 @@ button { cursor:pointer; }
   cursor: pointer;
   -webkit-transition: background 0.2s, border-color 0.2s;
   transition: background 0.2s, border-color 0.2s;
-  max-width: 50%;
+  max-width: 100%;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
 }
 .file-input-label-correct {
   background: #fffdfd !important;
