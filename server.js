@@ -212,6 +212,63 @@ app.get('/bmi-dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'bmi-dashboard.html'))
 })
 
+// --- สมุดพก (report book): ผลประเมินพัฒนาการ มฐ.๑–๑๒ + ความคิดเห็นครูประจำชั้น ---
+// เก็บคนละ collection กับ bmi_records เพราะเป็นข้อมูลต่อเด็ก (ไม่ใช่ต่อครั้งที่ชั่ง-วัด)
+// คีย์เด็กใช้กติกาเดียวกับฝั่ง Nuxt (/api/bmi-students): ตัดคำนำหน้า + ยุบช่องว่าง + lowercase
+const bookStudentKey = (name) => String(name || '')
+  .trim()
+  .replace(/^(เด็กชาย|เด็กหญิง|ด\.ช\.|ด\.ญ\.|ดช\.|ดญ\.)\s*/, '')
+  .replace(/\s+/g, ' ')
+  .toLowerCase()
+
+const getBookCollection = () =>
+  ((typeof bmiDb !== 'undefined' && bmiDb) ? bmiDb : mdb).collection('bmi_books')
+
+// Return report books (all, or one student via ?name= / ?key=)
+app.get('/api/bmi-book', async (req, res) => {
+  try {
+    const q = {}
+    const key = req.query.key || (req.query.name ? bookStudentKey(req.query.name) : null)
+    if (key) q.studentKey = key
+    const docs = await getBookCollection().find(q).toArray()
+    return res.json({ success: true, books: docs })
+  } catch (e) {
+    console.error('[ERROR] GET /api/bmi-book', e && e.message)
+    return res.status(500).json({ success: false, message: 'failed to fetch books' })
+  }
+})
+
+// Upsert one student's report book (ครูกดบันทึกจากหน้า bmi-dashboard)
+app.post('/api/bmi-book', async (req, res) => {
+  try {
+    const { name, classroom, dev, comments, teacher } = req.body || {}
+    if (!name) return res.status(400).json({ success: false, message: 'name required' })
+
+    const studentKey = bookStudentKey(name)
+    if (!studentKey) return res.status(400).json({ success: false, message: 'invalid name' })
+
+    const now = new Date().toISOString()
+    const doc = {
+      studentKey,
+      name: String(name).trim(),
+      classroom: String(classroom || '').trim(),
+      dev: (dev && typeof dev === 'object') ? dev : {},
+      comments: (comments && typeof comments === 'object') ? comments : {},
+      teacher: String(teacher || '').trim(),
+      updated_at: now,
+    }
+    await getBookCollection().updateOne(
+      { studentKey },
+      { $set: doc, $setOnInsert: { created_at: now } },
+      { upsert: true }
+    )
+    return res.json({ success: true, studentKey })
+  } catch (e) {
+    console.error('[ERROR] POST /api/bmi-book', e && e.message)
+    return res.status(500).json({ success: false, message: 'save failed' })
+  }
+})
+
 // --- Usage tracking endpoints (start / end / event) ---
 app.post('/api/usage/start', async (req, res) => {
   try {

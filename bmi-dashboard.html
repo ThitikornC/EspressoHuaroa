@@ -55,6 +55,19 @@
             .status-pill { min-width: 64px; font-size: 12px; padding: 4px 8px; }
         }
 
+        /* สมุดพก modal: แท็บ + แถวรายการประเมิน */
+        #bookModal:not(.hidden) { display: flex; }
+        .book-tab { color: #6b7280; border-bottom: 3px solid transparent; transition: all 0.15s; }
+        .book-tab:hover { background: rgba(116,100,10,0.05); }
+        .book-tab.active { color: var(--brand-brown); border-bottom-color: var(--brand-brown); background: #fff; }
+        .book-std { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
+        .book-std-title { font-size: 0.8rem; font-weight: 700; color: #4b5563; padding: 8px 12px; background: rgba(116,100,10,0.06); }
+        .book-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 12px; border-top: 1px solid #f3f4f6; }
+        .book-item-name { font-size: 0.8rem; color: #374151; }
+        .book-level { flex-shrink: 0; border: 1px solid #d1d5db; border-radius: 8px; padding: 4px 8px; font-size: 0.8rem; background: #fff; color: #374151; }
+        .book-level.filled { border-color: var(--brand-brown); color: var(--brand-brown); font-weight: 600; }
+        .book-auto { flex-shrink: 0; display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+
         /* Applied only during export to force print-friendly dark text */
         .export-black-text,
         .export-black-text * {
@@ -94,39 +107,6 @@
         <div id="contentSection" class="flex-1 overflow-y-auto p-4 lg:p-8 pb-20 hidden">
             <div id="captureAreaDashboard" class="max-w-5xl mx-auto space-y-8 w-full px-2 sm:px-0">
                 
-                <!-- School/Class Dashboard Summary Table -->
-                <div id="schoolDashboard" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hidden">
-                    <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                        สรุปผลภาวะโภชนาการ <span id="summaryTitle">แยกรายห้อง</span>
-                    </h2>
-                    <div class="responsive-scroll overflow-x-auto">
-                        <table class="w-full text-sm text-center">
-                            <thead>
-                                <tr class="bg-gray-100 text-gray-700 font-bold">
-                                    <th class="p-3 text-left rounded-tl-lg">ห้องเรียน</th>
-                                    <th class="p-3">จำนวน (คน)</th>
-                                    <th class="p-3 text-green-700">สมส่วน</th>
-                                    <th class="p-3 text-red-600">เริ่มอ้วน/อ้วน</th>
-                                    <th class="p-3 text-orange-600 rounded-tr-lg">ผอม/ค่อนข้างผอม</th>
-                                </tr>
-                            </thead>
-                            <tbody id="summaryTableBody" class="divide-y divide-gray-100">
-                                <!-- Data rows will be injected here -->
-                            </tbody>
-                            <tfoot class="bg-gray-50 font-bold text-gray-800">
-                                <tr>
-                                    <td class="p-3 text-left">รวมทั้งหมด</td>
-                                    <td class="p-3" id="sumTotal">0</td>
-                                    <td class="p-3 text-green-700" id="sumNormal">0</td>
-                                    <td class="p-3 text-red-600" id="sumOver">0</td>
-                                    <td class="p-3 text-orange-600" id="sumUnder">0</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-
                 <!-- Individual Card Section -->
                 <div class="flex justify-center">
                     <div class="bg-white rounded-[2rem] shadow-xl p-8 w-full max-w-md text-center border border-gray-100 relative overflow-hidden">
@@ -165,8 +145,10 @@
                             </div>
                         </div>
                         <div class="mt-8 text-xs text-gray-300">เกณฑ์อ้างอิง: กรมอนามัย (0-19 ปี)</div>
-                        <div class="mt-6 flex items-center gap-2 justify-center">
+                        <div class="mt-6 flex items-center gap-2 justify-center flex-wrap">
                             <button onclick="openAddModal()" class="text-brand text-sm leading-none hover:underline">แก้ไข/เพิ่ม</button>
+                            <span class="text-gray-300">|</span>
+                            <button onclick="openBookModal()" class="text-amber-700 text-sm leading-none hover:underline font-semibold">กรอกสมุดพก</button>
                             <span class="text-gray-300">|</span>
                             <button onclick="exportToCSV()" class="text-green-500 text-sm leading-none hover:underline">Export CSV</button>
                             <button onclick="exportToPNG()" class="text-purple-600 text-sm leading-none hover:underline">Export PNG</button>
@@ -333,7 +315,45 @@
                     </div>
                 </div>
             </div>
+
     </div>
+
+            <!-- สมุดพก: ครูประจำชั้นกรอกผลประเมินพัฒนาการ + ความคิดเห็น (แสดงต่อผู้ปกครองที่หน้า Clientbook) -->
+            <!-- ต้องอยู่นอก #addModal — ไม่งั้นโดน display:none ของ modal แม่กลืนไปด้วย -->
+            <div id="bookModal" class="fixed inset-0 bg-black/40 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
+                <div class="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col" style="max-height:92vh;">
+                    <div class="header-bg p-4 relative flex flex-col items-center text-white">
+                        <h3 class="font-bold text-lg">สมุดพก</h3>
+                        <p class="text-xs opacity-80" id="bookStudentLabel">-</p>
+                        <button onclick="closeBookModal()" class="absolute right-3 top-3 opacity-70 hover:opacity-100 text-2xl leading-none">&times;</button>
+                    </div>
+
+                    <div class="flex border-b bg-gray-50">
+                        <button type="button" id="bookTabDev" onclick="switchBookTab('dev')" class="book-tab flex-1 py-3 text-sm font-semibold">ผลประเมินพัฒนาการ</button>
+                        <button type="button" id="bookTabComment" onclick="switchBookTab('comment')" class="book-tab flex-1 py-3 text-sm font-semibold">ความคิดเห็นครู</button>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto p-4 bg-gray-50">
+                        <div id="bookPaneDev">
+                            <p class="text-xs text-gray-500 mb-3">ระดับคุณภาพ: ๓ = ดี · ๒ = พอใช้ · ๑ = ควรส่งเสริม — ข้อ ๑.๑ ดึงผลจากสมาร์ทแทรคอัตโนมัติ</p>
+                            <div id="bookDevList" class="space-y-3"></div>
+                        </div>
+                        <div id="bookPaneComment" class="hidden">
+                            <div id="bookCommentList" class="space-y-4"></div>
+                            <div class="mt-4">
+                                <label class="block text-sm font-medium text-gray-600 mb-1">ครูผู้บันทึก</label>
+                                <input type="text" id="bookTeacher" placeholder="ชื่อครูประจำชั้น" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 border-t flex items-center gap-3">
+                        <span id="bookSaveStatus" class="text-xs text-gray-400 flex-1"></span>
+                        <button onclick="closeBookModal()" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 font-medium text-sm hover:bg-gray-100">ปิด</button>
+                        <button onclick="saveBook()" id="bookSaveBtn" class="px-6 py-2 rounded-lg bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 shadow-md brand-btn">บันทึกสมุดพก</button>
+                    </div>
+                </div>
+            </div>
 
     <script>
         // --- 1. DATA (Re-sampled from PDFs) ---
@@ -713,12 +733,13 @@
             return { t, n, o, u, students: studentsInClass };
         }
 
-        function renderSidebar(filter = '', room = null) {
+        // keepSelection = re-render ห้องเดิมโดยคงเด็กที่เลือกไว้ (เช่นหลังกดเลือกเด็ก / หลังลบรายการ)
+        function renderSidebar(filter = '', room = null, keepSelection = false) {
             const listEl = document.getElementById('childrenList');
             listEl.innerHTML = '';
             currentRoom = room || null;
             // If user explicitly opened a room, clear any previously selected child
-            if (room) currentSelectedName = null;
+            if (room && !keepSelection) currentSelectedName = null;
 
             // Group records by classroom
             const roomsMap = new Map();
@@ -823,73 +844,11 @@
         }
 
         function updateDashboard() {
-            // Classroom filter removed; always show all classrooms here
-            const filterClass = null;
-            const dashEl = document.getElementById('schoolDashboard');
-            const summaryTitle = document.getElementById('summaryTitle');
-            const summaryTableBody = document.getElementById('summaryTableBody');
-
-            // If a room is selected in the sidebar and no individual is selected,
-            // render the classroom summary view and avoid overwriting it below.
+            // ตารางสรุปภาวะโภชนาการรวมถูกถอดออกแล้ว — เหลือหน้าที่พาไปหน้าสรุปรายห้อง
+            // เมื่อเลือกห้องอยู่แต่ยังไม่ได้เลือกเด็กรายคน
             if (currentRoom && !currentSelectedName) {
                 showClassroomSummary(currentRoom);
-                return;
             }
-            
-            // Get unique classrooms for the rows (include 'ไม่ระบุ' when classroom is empty)
-            let classroomsSet = new Set();
-            let hasUnknown = false;
-            allRecords.forEach(r => {
-                if (r.classroom && String(r.classroom).toString().trim() !== '') classroomsSet.add(String(r.classroom).trim());
-                else hasUnknown = true;
-            });
-            let classrooms = Array.from(classroomsSet).sort();
-            if (hasUnknown) classrooms.unshift('ไม่ระบุ');
-
-            // No classroom filter UI: show all classrooms
-            let rowsToShow = classrooms;
-
-            summaryTableBody.innerHTML = '';
-            
-            let totalSum = 0;
-            let normalSum = 0;
-            let overSum = 0;
-            let underSum = 0;
-
-            if (allRecords.length === 0) {
-                dashEl.classList.add('hidden');
-                return;
-            }
-            dashEl.classList.remove('hidden');
-            summaryTitle.innerText = "ทั้งหมด";
-
-            // Use global calculateStatsForClass to compute stats per class
-
-            // Generate rows
-            rowsToShow.forEach(cls => {
-                const stats = calculateStatsForClass(cls);
-                totalSum += stats.t;
-                normalSum += stats.n;
-                overSum += stats.o;
-                underSum += stats.u;
-
-                const tr = document.createElement('tr');
-                const displayCls = (cls === 'ไม่ระบุ') ? cls : `ห้อง ${cls}`;
-                tr.innerHTML = `
-                    <td class="p-3 text-left font-medium text-gray-700">${displayCls}</td>
-                    <td class="p-3">${stats.t}</td>
-                    <td class="p-3 text-green-700 bg-green-50/50">${stats.n} (${stats.t ? ((stats.n/stats.t)*100).toFixed(0) : 0}%)</td>
-                    <td class="p-3 text-red-600 bg-red-50/50">${stats.o} (${stats.t ? ((stats.o/stats.t)*100).toFixed(0) : 0}%)</td>
-                    <td class="p-3 text-orange-600 bg-orange-50/50">${stats.u} (${stats.t ? ((stats.u/stats.t)*100).toFixed(0) : 0}%)</td>
-                `;
-                summaryTableBody.appendChild(tr);
-            });
-
-            // Update footer totals
-            document.getElementById('sumTotal').innerText = totalSum;
-            document.getElementById('sumNormal').innerText = `${normalSum} (${totalSum ? ((normalSum/totalSum)*100).toFixed(0) : 0}%)`;
-            document.getElementById('sumOver').innerText = `${overSum} (${totalSum ? ((overSum/totalSum)*100).toFixed(0) : 0}%)`;
-            document.getElementById('sumUnder').innerText = `${underSum} (${totalSum ? ((underSum/totalSum)*100).toFixed(0) : 0}%)`;
         }
 
         function getRefsFor(gender, ageTotalM, height) {
@@ -918,7 +877,7 @@
             // Highlight selected (re-render but preserve current room and filter)
             const items = document.querySelectorAll('.side-item');
             items.forEach(i => i.classList.remove('selected'));
-            renderSidebar('', currentRoom);
+            renderSidebar('', currentRoom, true);
 
             document.getElementById('emptyState').style.display = 'none';
             document.getElementById('contentSection').style.display = 'block';
@@ -989,94 +948,225 @@
             try { if (window.innerWidth < 1024) { document.querySelector('aside').classList.add('hidden'); document.getElementById('contentSection').scrollIntoView(); } } catch(e) {}
         }
 
-        // --- Nutrition trend line chart (status % across visits) ---
-        const TREND_WINDOW = 5;        // show this many visits at once
-        let trendWindowOffset = 0;     // 0 = newest window; +1 shifts one visit older
-        let trendClassName = null;     // reset the window when switching rooms
+        // --- สมุดพก: ครูกรอกผลประเมินพัฒนาการ + ความคิดเห็น (ส่งไปแสดงที่หน้า Clientbook ของผู้ปกครอง) ---
+        // โครงเดียวกับหน้า Clientbook.vue — แก้ที่ไหนต้องแก้ให้ตรงกันทั้งสองฝั่ง
+        const BOOK_DEV_STANDARDS = [
+            {
+                domain: 'ด้านร่างกาย',
+                standards: [
+                    { title: 'มฐ.๑ ร่างกายเจริญเติบโตตามวัยและมีสุขนิสัยที่ดี', items: ['๑.๑ มีน้ำหนักและส่วนสูงตามเกณฑ์', '๑.๒ มีสุขภาพอนามัย สุขนิสัยที่ดี', '๑.๓ รักษาความปลอดภัยของตนเองและผู้อื่น'] },
+                    { title: 'มฐ.๒ กล้ามเนื้อใหญ่และกล้ามเนื้อเล็กแข็งแรงใช้ได้อย่างคล่องแคล่วและประสานสัมพันธ์กัน', items: ['๒.๑ เคลื่อนไหวร่างกายอย่างคล่องแคล่วและทรงตัวได้', '๒.๒ ใช้มือ - ตา ประสานสัมพันธ์กัน'] },
+                ],
+            },
+            {
+                domain: 'ด้านอารมณ์ จิตใจ',
+                standards: [
+                    { title: 'มฐ.๓ มีสุขภาพจิตดีและมีความสุข', items: ['๓.๑ แสดงออกทางอารมณ์ได้อย่างเหมาะสม', '๓.๒ มีความรู้สึกที่ดีต่อตนเองและผู้อื่น'] },
+                    { title: 'มฐ.๔ ชื่นชมและแสดงออกทางศิลปะ ดนตรี และการเคลื่อนไหว', items: ['๔.๑ สนใจ มีความสุขและแสดงออกผ่านงานศิลปะ ดนตรี และการเคลื่อนไหว', '๔.๒ แสดงออกทางด้านศิลปะ ดนตรี และการเคลื่อนไหวตามจินตนาการ'] },
+                ],
+            },
+            {
+                domain: 'ด้านสังคม',
+                standards: [
+                    { title: 'มฐ.๕ มีคุณธรรม จริยธรรม มีจิตใจที่ดีงาม', items: ['๕.๑ ซื่อสัตย์สุจริต', '๕.๒ มีความเมตตากรุณา มีน้ำใจและช่วยเหลือแบ่งปัน', '๕.๓ มีความเห็นอกเห็นใจผู้อื่น', '๕.๔ มีความรับผิดชอบ'] },
+                    { title: 'มฐ.๖ มีทักษะชีวิตและปฏิบัติตนตามหลักปรัชญาของเศรษฐกิจพอเพียง', items: ['๖.๑ ช่วยเหลือตนเองในการปฏิบัติกิจวัตรประจำวัน', '๖.๒ มีวินัยในตนเอง', '๖.๓ ประหยัดและพอเพียง'] },
+                    { title: 'มฐ.๗ รักธรรมชาติ สิ่งแวดล้อม วัฒนธรรมและความเป็นไทย', items: ['๗.๑ ดูแลรักษาธรรมชาติและสิ่งแวดล้อม', '๗.๒ มีมารยาทตามวัฒนธรรมไทยและรักความเป็นไทย'] },
+                    { title: 'มฐ.๘ อยู่ร่วมกับผู้อื่นได้อย่างมีความสุขและปฏิบัติตนเป็นสมาชิกที่ดีของสังคม', items: ['๘.๑ ยอมรับความเหมือนและความแตกต่างระหว่างบุคคล', '๘.๒ มีปฏิสัมพันธ์ที่ดีกับผู้อื่น', '๘.๓ ปฏิบัติตนเบื้องต้นในการเป็นสมาชิกที่ดีของสังคม'] },
+                ],
+            },
+            {
+                domain: 'ด้านสติปัญญา',
+                standards: [
+                    { title: 'มฐ.๙ ใช้ภาษาได้เหมาะสมกับวัย', items: ['๙.๑ สนทนาโต้ตอบและเล่าเรื่องให้ผู้อื่นเข้าใจ', '๙.๒ อ่าน เขียนภาพ และสัญลักษณ์ได้'] },
+                    { title: 'มฐ.๑๐ มีความสามารถในการคิดที่จะเป็นพื้นฐานในการเรียนรู้', items: ['๑๐.๑ มีความสามารถในการคิดรวบยอด', '๑๐.๒ มีความสามารถในการคิดเชิงเหตุผล', '๑๐.๓ มีความสามารถในการแก้ปัญหาและตัดสินใจ'] },
+                    { title: 'มฐ.๑๑ มีจินตนาการและความคิดสร้างสรรค์', items: ['๑๑.๑ ทำงานศิลปะตามจินตนาการและความคิดสร้างสรรค์', '๑๑.๒ แสดงท่าทาง/เคลื่อนไหวตามจินตนาการอย่างสร้างสรรค์'] },
+                    { title: 'มฐ.๑๒ มีเจตคติที่ดีต่อการเรียนรู้ และมีความสามารถในการแสวงหาความรู้ได้เหมาะสมกับวัย', items: ['๑๒.๑ มีเจตคติที่ดีต่อการเรียนรู้', '๑๒.๒ มีความสามารถในการแสวงหาความรู้'] },
+                ],
+            },
+        ];
+        const BOOK_COMMENT_DOMAINS = ['ด้านร่างกาย', 'ด้านอารมณ์ - จิตใจ', 'ด้านสังคม', 'ด้านสติปัญญา'];
+        const BOOK_LEVELS = [
+            { value: '', label: 'ยังไม่ประเมิน' },
+            { value: '3', label: '๓ ดี' },
+            { value: '2', label: '๒ พอใช้' },
+            { value: '1', label: '๑ ควรส่งเสริม' },
+        ];
+        // ข้อ ๑.๑ ดึงผลจากสมาร์ทแทรคอัตโนมัติ ครูไม่ต้องกรอก
+        const isBookGrowthItem = (item) => item.indexOf('๑.๑') === 0;
 
-        // Build per-visit status percentages for a class, reusing the WH grouping
-        // already used by the top summary table (n=สมส่วน, o=ท้วม/อ้วน, u=ผอม).
-        function buildTrendSeries(className, maxVisit) {
-            const labels = [], normal = [], over = [], under = [];
-            for (let v = 1; v <= maxVisit; v++) {
-                const s = calculateStatsForClass(className, v);
-                const t = s.t || 0;
-                labels.push('ครั้งที่ ' + v);
-                normal.push(t ? +((s.n / t) * 100).toFixed(2) : 0);
-                over.push(t ? +((s.o / t) * 100).toFixed(2) : 0);
-                under.push(t ? +((s.u / t) * 100).toFixed(2) : 0);
-            }
-            return { labels, normal, over, under };
+        let currentBookDoc = null;   // เอกสารสมุดพกของเด็กที่กำลังเปิด
+
+        function switchBookTab(which) {
+            const isDev = which === 'dev';
+            document.getElementById('bookPaneDev').classList.toggle('hidden', !isDev);
+            document.getElementById('bookPaneComment').classList.toggle('hidden', isDev);
+            document.getElementById('bookTabDev').classList.toggle('active', isDev);
+            document.getElementById('bookTabComment').classList.toggle('active', !isDev);
         }
 
-        function renderTrendChart(className, maxVisit) {
-            const canvas = document.getElementById('trendChart');
-            if (!canvas || typeof Chart === 'undefined') return;
-            // Reset the scroll window when the room changes
-            if (className !== trendClassName) { trendWindowOffset = 0; trendClassName = className; }
+        // ผลชั่ง-วัดล่าสุดของเด็ก แปลงเป็นป้ายสถานะ (ใช้เติมข้อ ๑.๑ ให้อัตโนมัติ)
+        function getLatestStatusChips(name) {
+            const items = allRecords.filter(r => (r.name || '').trim() === name).sort((a, b) => a.ageTotalM - b.ageTotalM);
+            const latest = items[items.length - 1];
+            if (!latest) return '';
+            const refs = getRefsFor(latest.gender || 'boy', latest.ageTotalM, latest.h);
+            const chips = [];
+            if (refs.refWA) {
+                const s = evaluateStatus(latest.w, refs.refWA, 'WA');
+                chips.push(`<span class="status-pill ${s.c}" style="min-width:auto;font-size:0.7rem;">${formatStatusText(s.t, 'WA')}</span>`);
+            }
+            if (refs.refHA) {
+                const s = evaluateStatus(latest.h, refs.refHA, 'HA');
+                chips.push(`<span class="status-pill ${s.c}" style="min-width:auto;font-size:0.7rem;">${formatStatusText(s.t, 'HA')}</span>`);
+            }
+            return chips.join('');
+        }
 
-            const full = buildTrendSeries(className, maxVisit);
-            const n = full.labels.length;
-            const maxOffset = Math.max(0, n - TREND_WINDOW);
-            if (trendWindowOffset > maxOffset) trendWindowOffset = maxOffset;
-            if (trendWindowOffset < 0) trendWindowOffset = 0;
-            const end = n - trendWindowOffset;
-            const start = Math.max(0, end - TREND_WINDOW);
-            const slice = arr => arr.slice(start, end);
+        function renderBookDevList(dev) {
+            const wrap = document.getElementById('bookDevList');
+            wrap.innerHTML = '';
+            BOOK_DEV_STANDARDS.forEach(domain => {
+                const domainEl = document.createElement('div');
+                domainEl.className = 'space-y-2';
+                let html = `<div class="text-sm font-bold text-brand px-1">${domain.domain}</div>`;
+                domain.standards.forEach(std => {
+                    html += `<div class="book-std"><div class="book-std-title">${std.title}</div>`;
+                    std.items.forEach(item => {
+                        if (isBookGrowthItem(item)) {
+                            const chips = getLatestStatusChips(currentSelectedName) || '<span class="text-xs text-gray-400">ยังไม่มีผลชั่ง-วัด</span>';
+                            html += `<div class="book-item"><span class="book-item-name">${item}</span><span class="book-auto">${chips}</span></div>`;
+                            return;
+                        }
+                        const val = (dev && dev[item]) ? String(dev[item]) : '';
+                        const opts = BOOK_LEVELS.map(l => `<option value="${l.value}" ${l.value === val ? 'selected' : ''}>${l.label}</option>`).join('');
+                        html += `<div class="book-item">
+                                    <span class="book-item-name">${item}</span>
+                                    <select class="book-level ${val ? 'filled' : ''}" data-item="${item}" onchange="this.classList.toggle('filled', !!this.value)">${opts}</select>
+                                 </div>`;
+                    });
+                    html += `</div>`;
+                });
+                domainEl.innerHTML = html;
+                wrap.appendChild(domainEl);
+            });
+        }
 
-            if (chartInstances['trendChart']) { chartInstances['trendChart'].destroy(); }
-            const ctx = canvas.getContext('2d');
-            chartInstances['trendChart'] = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: slice(full.labels),
-                    datasets: [
-                        { label: 'สมส่วน/ตามเกณฑ์', data: slice(full.normal), borderColor: '#16a34a', backgroundColor: '#16a34a', tension: 0.3, fill: false, pointRadius: 4 },
-                        { label: 'ท้วม/อ้วน', data: slice(full.over), borderColor: '#f97316', backgroundColor: '#f97316', tension: 0.3, fill: false, pointRadius: 4 },
-                        { label: 'ผอม', data: slice(full.under), borderColor: '#dc2626', backgroundColor: '#dc2626', tension: 0.3, fill: false, pointRadius: 4 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    scales: {
-                        y: { min: 0, max: 100, title: { display: true, text: '% ของเด็กในห้อง' }, ticks: { callback: v => v + '%' } },
-                        x: { title: { display: true, text: 'ครั้งที่ชั่ง/วัด' } }
-                    },
-                    plugins: {
-                        legend: { position: 'bottom' },
-                        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y}%` } }
-                    }
+        function renderBookCommentList(comments) {
+            const wrap = document.getElementById('bookCommentList');
+            let html = '';
+            [1, 2].forEach(term => {
+                const termData = (comments && comments[term]) || {};
+                html += `<div class="book-std"><div class="book-std-title">ภาคเรียนที่ ${term}</div><div class="p-3 space-y-2">`;
+                BOOK_COMMENT_DOMAINS.forEach(d => {
+                    const val = termData[d] || '';
+                    html += `<div>
+                                <label class="block text-xs font-semibold text-gray-500 mb-1">${d}</label>
+                                <textarea rows="2" data-term="${term}" data-domain="${d}" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" placeholder="บันทึกความคิดเห็น">${val}</textarea>
+                             </div>`;
+                });
+                html += `</div></div>`;
+            });
+            wrap.innerHTML = html;
+        }
+
+        async function openBookModal() {
+            if (!currentSelectedName) { alert('กรุณาเลือกรายชื่อเด็กก่อน'); return; }
+            const modal = document.getElementById('bookModal');
+            try {
+                const latest = allRecords.filter(r => (r.name || '').trim() === currentSelectedName).sort(compareByRecencyDesc)[0] || {};
+                document.getElementById('bookStudentLabel').innerText =
+                    `${currentSelectedName}${latest.classroom ? ' · ห้อง ' + latest.classroom : ''}`;
+                document.getElementById('bookSaveStatus').innerText = 'กำลังโหลดสมุดพก...';
+                // ตั้ง display ตรงๆ ด้วย ไม่พึ่งลำดับ/ความจำเพาะของคลาส .hidden จาก Tailwind
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex';
+                switchBookTab('dev');
+                // เนื้อหาว่างไว้ก่อน กันของเด็กคนก่อนค้างระหว่างรอโหลด
+                renderBookDevList({});
+                renderBookCommentList({});
+            } catch (e) {
+                console.error('[book] open failed', e);
+                alert('เปิดสมุดพกไม่สำเร็จ: ' + (e && e.message ? e.message : e));
+                return;
+            }
+
+            currentBookDoc = { dev: {}, comments: {}, teacher: '' };
+            try {
+                const res = await fetch(`/api/bmi-book?name=${encodeURIComponent(currentSelectedName)}`, { cache: 'no-store' });
+                if (res.status === 404) throw new Error('ไม่พบ /api/bmi-book — ต้องรีสตาร์ทเซิร์ฟเวอร์ (server.js) ก่อน');
+                const json = await res.json();
+                if (json && json.success && json.books && json.books.length) {
+                    const b = json.books[0];
+                    currentBookDoc = { dev: b.dev || {}, comments: b.comments || {}, teacher: b.teacher || '' };
                 }
+                document.getElementById('bookSaveStatus').innerText = '';
+            } catch (e) {
+                console.warn('[book] load failed', e && e.message);
+                document.getElementById('bookSaveStatus').innerText = 'โหลดข้อมูลเดิมไม่สำเร็จ: ' + (e && e.message ? e.message : '');
+            }
+            renderBookDevList(currentBookDoc.dev);
+            renderBookCommentList(currentBookDoc.comments);
+            document.getElementById('bookTeacher').value = currentBookDoc.teacher || '';
+        }
+
+        function closeBookModal() {
+            const modal = document.getElementById('bookModal');
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+
+        async function saveBook() {
+            if (!currentSelectedName) return;
+            const btn = document.getElementById('bookSaveBtn');
+            const status = document.getElementById('bookSaveStatus');
+
+            const dev = {};
+            document.querySelectorAll('#bookDevList select[data-item]').forEach(sel => {
+                if (sel.value) dev[sel.dataset.item] = sel.value;
+            });
+            const comments = {};
+            document.querySelectorAll('#bookCommentList textarea[data-term]').forEach(ta => {
+                const text = (ta.value || '').trim();
+                if (!text) return;
+                const term = ta.dataset.term;
+                if (!comments[term]) comments[term] = {};
+                comments[term][ta.dataset.domain] = text;
             });
 
-            const prev = document.getElementById('trendPrev');
-            const next = document.getElementById('trendNext');
-            if (prev) { prev.disabled = (start === 0); prev.onclick = () => { trendWindowOffset++; renderTrendChart(className, maxVisit); }; }
-            if (next) { next.disabled = (trendWindowOffset === 0); next.onclick = () => { trendWindowOffset--; renderTrendChart(className, maxVisit); }; }
+            const latest = allRecords.filter(r => (r.name || '').trim() === currentSelectedName).sort(compareByRecencyDesc)[0] || {};
+            btn.disabled = true;
+            status.innerText = 'กำลังบันทึก...';
+            try {
+                const res = await fetch('/api/bmi-book', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: currentSelectedName,
+                        classroom: latest.classroom || '',
+                        dev,
+                        comments,
+                        teacher: (document.getElementById('bookTeacher').value || '').trim(),
+                    }),
+                });
+                const json = await res.json();
+                if (json && json.success) {
+                    status.innerText = 'บันทึกแล้ว · ผู้ปกครองเห็นผลในสมุดพกออนไลน์';
+                    setTimeout(() => { status.innerText = ''; }, 4000);
+                } else {
+                    status.innerText = 'บันทึกไม่สำเร็จ';
+                }
+            } catch (e) {
+                console.error('[book] save failed', e);
+                status.innerText = 'บันทึกไม่สำเร็จ — ตรวจการเชื่อมต่อ';
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         // Render a classroom summary (totals + student list) into main content
         function showClassroomSummary(className) {
             console.log('[bmi] showClassroomSummary', className);
-            const dashEl = document.getElementById('schoolDashboard');
-            const summaryTitle = document.getElementById('summaryTitle');
-            const summaryTableBody = document.getElementById('summaryTableBody');
             const stats = calculateStatsForClass(className, currentClassVisit);
-            summaryTitle.innerText = `ห้อง ${className}`;
-            // replace summary table with single-row summary for this room
-            summaryTableBody.innerHTML = '';
-                const tr = document.createElement('tr');
-                const displayClassName = (className === 'ไม่ระบุ') ? className : `ห้อง ${className}`;
-                tr.innerHTML = `
-                <td class="p-3 text-left font-medium text-gray-700">${displayClassName}</td>
-                <td class="p-3">${stats.t}</td>
-                <td class="p-3 text-green-700 bg-green-50/50">${stats.n} (${stats.t ? ((stats.n/stats.t)*100).toFixed(0) : 0}%)</td>
-                <td class="p-3 text-red-600 bg-red-50/50">${stats.o} (${stats.t ? ((stats.o/stats.t)*100).toFixed(0) : 0}%)</td>
-                <td class="p-3 text-orange-600 bg-orange-50/50">${stats.u} (${stats.t ? ((stats.u/stats.t)*100).toFixed(0) : 0}%)</td>
-            `;
-            summaryTableBody.appendChild(tr);
 
             // Build detailed printable-style table (like provided sample)
             let detail = document.getElementById('classDetail');
@@ -1254,24 +1344,9 @@
             });
 
             html += `</tbody></table>`;
-            // Trend line chart: nutritional status (%) across visits
-            const trendCardHtml = `
-                <div class="my-6"></div>
-                <div class="bg-white rounded-2xl border border-gray-100 p-4">
-                    <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
-                        <div class="font-bold text-sm text-gray-700">แนวโน้มภาวะโภชนาการรายครั้ง (น้ำหนักตามส่วนสูง)</div>
-                        <div class="flex items-center gap-2">
-                            <button id="trendPrev" type="button" class="px-2 py-1 rounded-md border border-gray-200 text-sm bg-white text-gray-700 hover:bg-gray-50">‹ เก่ากว่า</button>
-                            <button id="trendNext" type="button" class="px-2 py-1 rounded-md border border-gray-200 text-sm bg-white text-gray-700 hover:bg-gray-50">ใหม่กว่า ›</button>
-                        </div>
-                    </div>
-                    <div style="height:280px"><canvas id="trendChart"></canvas></div>
-                    <div class="text-xs text-gray-400 mt-2">เส้นเขียว “สมส่วน” สูงขึ้น = ภาพรวมดีขึ้น • เส้นแดง “ผอม” หรือเส้นส้ม “ท้วม/อ้วน” สูงขึ้น = แย่ลง</div>
-                </div>`;
-            // add some spacing then append trend chart + detailed summary sections
-            html += trendCardHtml + `<div class="my-6"></div>` + detailedHtml;
+            // add some spacing then append the detailed summary sections
+            html += `<div class="my-6"></div>` + detailedHtml;
             detail.innerHTML = html;
-            renderTrendChart(className, maxVisit);
 
             try {
                 const visitSel = document.getElementById('classVisitSelect');
@@ -1317,10 +1392,9 @@
                 });
             }
 
-            // Show main content and hide the compact summary header (we render full report instead)
+            // Show main content (ตารางสรุปด้านบนถูกถอดออกแล้ว เหลือรายงานเต็มอย่างเดียว)
             document.getElementById('emptyState').style.display = 'none';
             document.getElementById('contentSection').style.display = 'block';
-            if (dashEl) dashEl.classList.add('hidden');
 
             // On small screens, hide the sidebar and scroll the content into view
             try {
@@ -2225,7 +2299,7 @@
                 try { localStorage.setItem('bmiRecords', JSON.stringify(allRecords)); } catch (e) { console.error('Failed to save after delete', e); }
 
                 // Refresh sidebar and tables
-                renderSidebar('', currentRoom);
+                renderSidebar('', currentRoom, true);
                 if (currentSelectedName) {
                     const remaining = allRecords.filter(r => (r.name||'').trim() === currentSelectedName);
                     if (remaining.length > 0) selectChild(currentSelectedName);
